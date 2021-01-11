@@ -9,23 +9,23 @@ See environment.yaml
 
 ## Usage
 ```
-usage: call_ig_germlines.py [-h] [-annotate ANNOTATE] [-outdir OUTDIR]
-                            [-trim_primers PRIMER_FASTA_PATH]
+usage: call_ig_germlines.py [-h] [-annotate path_to_blast_db]
+                            [-outdir output_directory]
+                            [-trim_primers path_to_primer_fasta]
                             [--skip_preprocess] [--verbose]
-                            [-max_log_v_evalue MAX_LOG_V_EVALUE]
-                            [-max_log_j_evalue MAX_LOG_J_EVALUE]
+                            [-max_log_v_evalue float_value]
+                            [-max_log_j_evalue float_value]
+                            [-min_v_sequence_length float_value]
+                            [-min_j_sequence_length float_value]
                             [--allow_unproductive] [--allow_missing_cdr3]
                             [--allow_ns_in_sequence]
-                            [-min_v_sequence_length MIN_V_SEQUENCE_LENGTH]
-                            [-min_j_sequence_length MIN_J_SEQUENCE_LENGTH]
-                            [-max_primer_error MAX_PRIMER_ERROR]
-                            [--reverse_primer]
-                            [-lineage_clustering_cutoff LINEAGE_CLUSTERING_CUTOFF]
-                            [-hierarchical_clustering_method HIERARCHICAL_CLUSTERING_METHOD]
-                            [-min_germline_usage_fraction MIN_GERMLINE_USAGE_FRACTION]
-                            [-min_germline_num_lineages MIN_GERMLINE_NUM_LINEAGES]
-                            [-cloud_radius CLOUD_RADIUS]
-                            [-min_usage_fraction_within_cloud MIN_USAGE_FRACTION_WITHIN_CLOUD]
+                            [-max_primer_error int_value] [--reverse_primers]
+                            [-lineage_clustering_cutoff float_value]
+                            [-hierarchical_clustering_method method]
+                            [-min_germline_usage_fraction float_value]
+                            [-min_germline_num_lineages float_value]
+                            [-cloud_radius float_value]
+                            [-min_usage_fraction_within_cloud float_value]
                             input_file_path
 
 Constructs a database of Ig V germlines.
@@ -36,27 +36,29 @@ positional arguments:
 
 optional arguments:
   -h, --help            show this help message and exit
-  -annotate ANNOTATE    path to database containing known Ig V alleles if
+  -annotate path_to_blast_db
+                        path to database containing known Ig V alleles; If
                         omitted, called germline genes will not be annotated
-  -outdir OUTDIR        output directory (default: working directory)
-  -trim_primers PRIMER_FASTA_PATH
-                        path to fasta file containing primers to be trimmed if
-                        omitted, no sequences will be trimmed
+  -outdir output_directory
+                        output directory (default: working directory)
+  -trim_primers path_to_primer_fasta
+                        path to fasta file containing primers to be trimmed;
+                        If omitted, no sequences will be trimmed
   --skip_preprocess     if set, preprocessing steps will be skipped
   --verbose             verbose output
-  -max_log_v_evalue MAX_LOG_V_EVALUE
-  -max_log_j_evalue MAX_LOG_J_EVALUE
+  -max_log_v_evalue float_value
+  -max_log_j_evalue float_value
+  -min_v_sequence_length float_value
+  -min_j_sequence_length float_value
   --allow_unproductive
   --allow_missing_cdr3
   --allow_ns_in_sequence
-  -min_v_sequence_length MIN_V_SEQUENCE_LENGTH
-  -min_j_sequence_length MIN_J_SEQUENCE_LENGTH
-  -max_primer_error MAX_PRIMER_ERROR
-  --reverse_primer
-  -lineage_clustering_cutoff LINEAGE_CLUSTERING_CUTOFF
-  -hierarchical_clustering_method HIERARCHICAL_CLUSTERING_METHOD
-  -min_germline_usage_fraction MIN_GERMLINE_USAGE_FRACTION
-  -min_germline_num_lineages MIN_GERMLINE_NUM_LINEAGES
-  -cloud_radius CLOUD_RADIUS
-  -min_usage_fraction_within_cloud MIN_USAGE_FRACTION_WITHIN_CLOUD
+  -max_primer_error int_value
+  --reverse_primers
+  -lineage_clustering_cutoff float_value
+  -hierarchical_clustering_method method
+  -min_germline_usage_fraction float_value
+  -min_germline_num_lineages float_value
+  -cloud_radius float_value
+  -min_usage_fraction_within_cloud float_value
   ```

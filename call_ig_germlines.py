@@ -13,18 +13,18 @@ parser = argparse.ArgumentParser(description='Constructs a database of Ig V germ
 parser.add_argument('input_airr', metavar='input_file_path', type=str,
                     help='path to input AIRR-formatted table containing Ig sequences')
 
-parser.add_argument('-annotate', type=str, required=False,
-                    help='path to database containing known Ig V alleles\n'
-                    'if omitted, called germline genes will not be annotated')
+parser.add_argument('-annotate', metavar='path_to_blast_db', type=str, required=False,
+                    help='path to database containing known Ig V alleles; '
+                    'If omitted, called germline genes will not be annotated')
 
-parser.add_argument('-outdir', type=str, default='./',
+parser.add_argument('-outdir', metavar='output_directory', type=str, default='./',
                     help='output directory '
                          '(default: working directory)')
 
-parser.add_argument('-trim_primers', metavar='PRIMER_FASTA_PATH',
+parser.add_argument('-trim_primers', metavar='path_to_primer_fasta',
                     type=str, required=False,
-                    help='path to fasta file containing primers to be trimmed\n'
-                    'if omitted, no sequences will be trimmed')
+                    help='path to fasta file containing primers to be trimmed; '
+                    'If omitted, no sequences will be trimmed')
 
 parser.add_argument('--skip_preprocess', required=False, default=False,
                     dest='skip_preprocess', action='store_true',
@@ -34,11 +34,17 @@ parser.add_argument('--verbose', required=False, default=False,
                     dest='verbose', action='store_true',
                     help='verbose output')
 
-parser.add_argument('-max_log_v_evalue', type=float, required=False,
+parser.add_argument('-max_log_v_evalue', metavar='float_value', type=float, required=False,
                     default=-60)
 
-parser.add_argument('-max_log_j_evalue', type=float, required=False,
+parser.add_argument('-max_log_j_evalue', metavar='float_value', type=float, required=False,
                     default=-10)
+
+parser.add_argument('-min_v_sequence_length', metavar='float_value', type=float, required=False,
+                    default=160)
+
+parser.add_argument('-min_j_sequence_length', metavar='float_value', type=float, required=False,
+                    default=20)
 
 parser.add_argument('--allow_unproductive', required=False,
                     default=False, action = 'store_true')
@@ -49,34 +55,28 @@ parser.add_argument('--allow_missing_cdr3', required=False,
 parser.add_argument('--allow_ns_in_sequence', required=False,
                     default=False, action = 'store_true')
 
-parser.add_argument('-min_v_sequence_length', type=float, required=False,
-                    default=160)
-
-parser.add_argument('-min_j_sequence_length', type=float, required=False,
-                    default=20)
-
-parser.add_argument('-max_primer_error', type=int, required=False, 
+parser.add_argument('-max_primer_error', metavar='int_value', type=int, required=False, 
                     default=2)
 
-parser.add_argument('--reverse_primer', required=False,
+parser.add_argument('--reverse_primers', required=False,
                     default=False, action = 'store_true')
 
-parser.add_argument('-lineage_clustering_cutoff', type=float, required=False,
+parser.add_argument('-lineage_clustering_cutoff', metavar='float_value', type=float, required=False,
                     default=0.1)
 
-parser.add_argument('-hierarchical_clustering_method', type=str, required=False,
+parser.add_argument('-hierarchical_clustering_method', metavar='method', type=str, required=False,
                     default='average')
 
-parser.add_argument('-min_germline_usage_fraction', type=float, required=False,
+parser.add_argument('-min_germline_usage_fraction', metavar='float_value', type=float, required=False,
                     default=0.001)
 
-parser.add_argument('-min_germline_num_lineages', type=float, required=False,
+parser.add_argument('-min_germline_num_lineages', metavar='float_value', type=float, required=False,
                     default=10)
 
-parser.add_argument('-cloud_radius', type=float, required=False,
+parser.add_argument('-cloud_radius', metavar='float_value', type=float, required=False,
                     default=3)
 
-parser.add_argument('-min_usage_fraction_within_cloud', type=float, required=False,
+parser.add_argument('-min_usage_fraction_within_cloud', metavar='float_value', type=float, required=False,
                     default=0.05)
 
 args = parser.parse_args()
@@ -105,7 +105,7 @@ MIN_J_SEQUENCE_LENGTH = args.min_j_sequence_length
 
 #primer trimming parameters
 MAX_PRIMER_ERROR = args.max_primer_error
-if args.reverse_primer:
+if args.reverse_primers:
     PRIMER_ORIENTATION = 'rev'
 else:
     PRIMER_ORIENTATION = 'fwd'
@@ -229,7 +229,7 @@ if __name__ == '__main__':
     
     if verbose:
       print(" Called a total of {n} germline alleles. ".format(n = v_germline_df.shape[0]))
-      if args.annotate is not None:
+      if not (args.annotate is None):
         print(" {m} of these can be mapped to alleles in provided database.".format(
               m = v_germline_df.match.notna().sum()))
 
