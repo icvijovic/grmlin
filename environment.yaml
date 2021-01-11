@@ -1,0 +1,11 @@
+name: germline_inference
+channels:
+  - bioconda
+  - conda-forge
+dependencies:
+  - numpy>=1.18.1
+  - scipy>=1.4.1
+  - pandas>=1.0.1
+  - python-levenshtein
+  - regex
+  - blast=2.7.1
