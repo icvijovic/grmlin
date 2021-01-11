@@ -1,13 +1,13 @@
 
-##About
+## About
 
 This repository contains a python package that calls immunoglobulin V germline alleles from deep BCR sequencing data.
 
-##Requirements
+## Requirements
 
 See environment.yaml
 
-##Usage
+## Usage
 ```
 usage: call_ig_germlines.py [-h] [-annotate ANNOTATE] [-outdir OUTDIR]
                             [-trim_primers PRIMER_FASTA_PATH]
