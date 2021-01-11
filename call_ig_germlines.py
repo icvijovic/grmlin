@@ -34,6 +34,51 @@ parser.add_argument('--verbose', required=False, default=False,
                     dest='verbose', action='store_true',
                     help='verbose output')
 
+parser.add_argument('-max_log_v_evalue', type=float, required=False,
+                    default=-60)
+
+parser.add_argument('-max_log_j_evalue', type=float, required=False,
+                    default=-10)
+
+parser.add_argument('--allow_unproductive', required=False,
+                    default=False, action = 'store_true')
+
+parser.add_argument('--allow_missing_cdr3', required=False,
+                    default=False, action = 'store_true')
+
+parser.add_argument('--allow_ns_in_sequence', required=False,
+                    default=False, action = 'store_true')
+
+parser.add_argument('-min_v_sequence_length', type=float, required=False,
+                    default=160)
+
+parser.add_argument('-min_j_sequence_length', type=float, required=False,
+                    default=20)
+
+parser.add_argument('-max_primer_error', type=int, required=False, 
+                    default=2)
+
+parser.add_argument('--reverse_primer', required=False,
+                    default=False, action = 'store_true')
+
+parser.add_argument('-lineage_clustering_cutoff', type=float, required=False,
+                    default=0.1)
+
+parser.add_argument('-hierarchical_clustering_method', type=str, required=False,
+                    default='average')
+
+parser.add_argument('-min_germline_usage_fraction', type=float, required=False,
+                    default=0.001)
+
+parser.add_argument('-min_germline_num_lineages', type=float, required=False,
+                    default=10)
+
+parser.add_argument('-cloud_radius', type=float, required=False,
+                    default=3)
+
+parser.add_argument('-min_usage_fraction_within_cloud', type=float, required=False,
+                    default=0.05)
+
 args = parser.parse_args()
 
 # parse i/o paths
@@ -49,6 +94,32 @@ else:
 skip_preprocess = args.skip_preprocess
 verbose = args.verbose
 
+# preprocessing filter parameters
+MAX_LOG_V_EVALUE = args.max_log_v_evalue
+MAX_LOG_J_EVALUE = args.max_log_j_evalue
+ALLOW_UNPRODUCTIVE = args.allow_unproductive
+ALLOW_MISSING_CDR3 = args.allow_missing_cdr3
+ALLOW_Ns_IN_SEQUENCE = args.allow_ns_in_sequence
+MIN_V_SEQUENCE_LENGTH = args.min_v_sequence_length
+MIN_J_SEQUENCE_LENGTH = args.min_j_sequence_length
+
+#primer trimming parameters
+MAX_PRIMER_ERROR = args.max_primer_error
+if args.reverse_primer:
+    PRIMER_ORIENTATION = 'rev'
+else:
+    PRIMER_ORIENTATION = 'fwd'
+
+# clustering parameters
+LINEAGE_CLUSTERING_CUTOFF = args.lineage_clustering_cutoff
+CLUSTERING_METHOD = args.hierarchical_clustering_method
+
+# germline calling parameters
+MIN_GERMLINE_USAGE_FRACTION = args.min_germline_usage_fraction
+MIN_GERMLINE_NUM_LINEAGES = args.min_germline_num_lineages
+CLOUD_RADIUS = args.cloud_radius
+MIN_USAGE_FRAC_WITHIN_CLOUD = args.min_usage_fraction_within_cloud
+
 sample_name = INPUT_FILENAME.split("/")[-1].split(".tsv.gz")[0]
 
 if __name__ == '__main__':
@@ -62,13 +133,13 @@ if __name__ == '__main__':
     if not skip_preprocess:
         # ensure that all sequences pass QC criteria
         df = clean_vdj_dataframe(df,
-                                 MAX_LOG_V_EVALUE=-60,
-                                 MAX_LOG_J_EVALUE=-10,
-                                 ALLOW_UNPRODUCTIVE=False,
-                                 ALLOW_MISSING_CDR3=False,
-                                 ALLOW_Ns_IN_SEQUENCE=False,
-                                 MIN_V_SEQUENCE_LENGTH=160,
-                                 MIN_J_SEQUENCE_LENGTH=20,
+                                 MAX_LOG_V_EVALUE=MAX_LOG_V_EVALUE,
+                                 MAX_LOG_J_EVALUE=MAX_LOG_J_EVALUE,
+                                 ALLOW_UNPRODUCTIVE=ALLOW_UNPRODUCTIVE,
+                                 ALLOW_MISSING_CDR3=ALLOW_MISSING_CDR3,
+                                 ALLOW_Ns_IN_SEQUENCE=ALLOW_Ns_IN_SEQUENCE,
+                                 MIN_V_SEQUENCE_LENGTH=MIN_V_SEQUENCE_LENGTH,
+                                 MIN_J_SEQUENCE_LENGTH=MIN_J_SEQUENCE_LENGTH,
                                  verbose=verbose)
 
         # parse out templated v sequence
@@ -83,7 +154,8 @@ if __name__ == '__main__':
             if verbose:
                 print(" Trimming primers...")
             df = trim_primer_sequence(df, v_templated_col, primer_dict,
-                                      primer_orientation='fwd', max_error=2)
+                                      primer_orientation=PRIMER_ORIENTATION,
+                                      max_error=MAX_PRIMER_ERROR)
             v_templated_col = v_templated_col + "_trimmed"
             if verbose:
                 print(" Done!")
@@ -112,13 +184,13 @@ if __name__ == '__main__':
         if verbose:
             print(" Caching cleaned AIRR dataframe, see {}".format(cache_dest))
 
-        df.to_csv(cache_dest, sep = '\t')               
+        df.to_csv(cache_dest, sep='\t')               
         
     else:
         v_templated_col = [x for x in df.columns if x.endswith("no_trunc")]
         if len(v_templated_col) != 1:
-            raise KeyError("Failed to identify column containing cleaned sequences"
-                           "Expected exactly one column of dataframe to end with string 'no_trunc'")
+            raise KeyError("Failed to identify column containing cleaned sequences."
+                           " Expected exactly one column of dataframe to end with string 'no_trunc'")
         v_templated_col = v_templated_col[0]
 
         # avoid renaming sample
@@ -129,8 +201,8 @@ if __name__ == '__main__':
     multilin_vs, cdr3_dists_v = extract_multilineage_sequences(df,
                                                              v_templated_col,
                                                              retain_columns=['v_family'],
-                                                             clustering_method='average',
-                                                             clustering_cutoff=0.1)
+                                                             clustering_method=CLUSTERING_METHOD,
+                                                             clustering_cutoff=LINEAGE_CLUSTERING_CUTOFF)
     # cache multilineage sequences and cdr3 distribution
     multinlin_v_dest = "{}/{}_multilineage_vs.tsv.gz".format(outdir, sample_name)
     cdr3_dists_v_dest = "{}/{}_cdr3_distance_distribution.tsv.gz".format(outdir, sample_name)
@@ -144,10 +216,10 @@ if __name__ == '__main__':
 
     # call v germlines
     v_germline_df = call_germline_genes(multilin_vs,
-                                        MIN_FRACTION=0.001,
-                                        MIN_NUMBER=10,
-                                        CLOUD_RADIUS=3,
-                                        MIN_USAGE_FRAC_WITHIN_CLOUD=0.05,
+                                        MIN_FRACTION=MIN_GERMLINE_USAGE_FRACTION,
+                                        MIN_NUMBER=MIN_GERMLINE_NUM_LINEAGES,
+                                        CLOUD_RADIUS=CLOUD_RADIUS,
+                                        MIN_USAGE_FRAC_WITHIN_CLOUD=MIN_USAGE_FRAC_WITHIN_CLOUD,
                                         verbose=verbose)
     # annotate v germlines
     if args.annotate is None:
@@ -166,4 +238,6 @@ if __name__ == '__main__':
 
     print(" Saving germline allele information to: {}".format(germline_dest))
 
-    v_germline_df.to_csv(germline_dest, sep = '\t')
+    v_germline_df = v_germline_df.rename(columns={v_templated_col: 'sequence',
+                                                  'match':'db_call'})
+    v_germline_df.to_csv(germline_dest, sep='\t')
