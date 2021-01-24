@@ -42,6 +42,7 @@ def extract_multilineage_sequences(airr_df, sequence_column,
 
     unique_seq_df['num'] = unique_seq_df.cdr3.str.len()
     unique_seq_df['D'] = unique_seq_df.cdr3.apply(get_pairwise_distances)
+    unique_seq_df['D_fractional'] = unique_seq_df.D / unique_seq_df.cdr3_length
     unique_seq_df['D_cutoff'] = unique_seq_df.cdr3_length * clustering_cutoff
     unique_seq_df['lineage_ids'] = unique_seq_df.apply(lambda x:
                                                        get_cluster_ids(x.D,
@@ -56,7 +57,7 @@ def extract_multilineage_sequences(airr_df, sequence_column,
 
     # compile distance distribution for sequences associated with multiple
     # cdr3's of the same length
-    distance_distribution = unique_seq_df[unique_seq_df.num_lineages > 1].D.apply(list).sum()
+    distance_distribution = unique_seq_df[unique_seq_df.num_lineages > 1].D_fractional.apply(list).sum()
     distance_distribution = np.asarray(distance_distribution, dtype=float)
 
     # finally, groupby sequence and additional info columns
