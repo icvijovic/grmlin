@@ -14,6 +14,10 @@ required: see environment.yaml
 
 optional: version 4 BLAST database of known alleles (for the annotation of inferred germlines)
 
+## Installation
+
+Clone repository, install dependencies and add grmlin to your path.
+
 ## Usage
 ```
 usage: grmlin [-h] [-annotate path_to_blast_db]
