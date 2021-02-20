@@ -96,7 +96,7 @@ def call_germline_genes(candidate_sequence_df,
                               if (('group' in x) or ('family' in x))]
 
     sequence_columns = [x for x in candidate_sequence_df.columns
-                        if ('seq' in x)]
+                        if ('seq' in x) and not('c_seq' in x)]
 
     if len(sequence_family_columns) != 1:
         raise KeyError("Cannot identify sequence family column in dataframe."
