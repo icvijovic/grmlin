@@ -144,7 +144,7 @@ if __name__ == '__main__':
                                  verbose=verbose)
 
         # parse out templated v sequence
-        df['v_sequence'] = df.apply(lambda x: x.sequence[int(x.v_sequence_start):
+        df['v_sequence'] = df.apply(lambda x: x.sequence[int(x.v_sequence_start)-1:
                                                          int(x.cdr3_start)],
                                     axis=1)
 
