@@ -226,8 +226,10 @@ if __name__ == '__main__':
     if args.annotate is None:
         pass
     else:
-        v_germline_df = annotate_germline_calls(v_germline_df, args.annotate)
-    
+        if v_germline_df.shape[0] > 0:
+            v_germline_df = annotate_germline_calls(v_germline_df, args.annotate)
+        else:
+            v_germline_df = pd.DataFrame({v_templated_col:[],'match':[],'btop':[],'mutations':[]}) 
     if verbose:
       print(" Called a total of {n} germline alleles. ".format(n = v_germline_df.shape[0]))
       if not (args.annotate is None):
