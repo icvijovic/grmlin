@@ -1,8 +1,8 @@
 #!/usr/bin/env python
+import argparse
+
 import numpy as np
 import pandas as pd
-
-import argparse
 
 from germline_inference.clean_vdj import *
 from germline_inference.germline_utils import *
@@ -26,6 +26,10 @@ parser.add_argument('-trim_primers', metavar='path_to_primer_fasta',
                     type=str, required=False,
                     help='path to fasta file containing primers to be trimmed; '
                     'If omitted, no sequences will be trimmed')
+
+parser.add_argument('-max_sequences', metavar='max_sequences',
+                    type=int, required=False,
+                    help='Number of unique sequences to consider when constructing a germline database')
 
 parser.add_argument('--skip_preprocess', required=False, default=False,
                     dest='skip_preprocess', action='store_true',
@@ -56,7 +60,7 @@ parser.add_argument('--allow_missing_cdr3', required=False,
 parser.add_argument('--allow_ns_in_sequence', required=False,
                     default=False, action = 'store_true')
 
-parser.add_argument('-max_primer_error', metavar='int_value', type=int, required=False, 
+parser.add_argument('-max_primer_error', metavar='int_value', type=int, required=False,
                     default=2)
 
 parser.add_argument('--reverse_primers', required=False,
@@ -87,15 +91,16 @@ INPUT_FILENAME = args.input_airr
 outdir = args.outdir
 
 if args.trim_primers is None:
-    trim_primers = False
+    TRIM_PRIMERS = False
 else:
-    trim_primers = True
+    TRIM_PRIMERS = True
     primer_dict = sequence_utils.fasta_to_dict(args.trim_primers)
 
 skip_preprocess = args.skip_preprocess
 verbose = args.verbose
 
 # preprocessing filter parameters
+MAX_SEQUENCES = args.max_sequences
 MAX_LOG_V_EVALUE = args.max_log_v_evalue
 MAX_LOG_J_EVALUE = args.max_log_j_evalue
 ALLOW_UNPRODUCTIVE = args.allow_unproductive
@@ -130,7 +135,7 @@ if __name__ == '__main__':
               "Called germline alleles will not be annotated.")
 
     df = pd.read_csv(INPUT_FILENAME, sep='\t').dropna(how='all', axis=1)
-    
+
     if not skip_preprocess:
         # ensure that all sequences pass QC criteria
         df = clean_vdj_dataframe(df,
@@ -150,7 +155,20 @@ if __name__ == '__main__':
 
         v_templated_col = 'v_sequence'
 
-        if trim_primers:
+        # if MAX_SEQUENCES option has been set, use top MAX_SEQUENCES most commonly occuring V sequences
+        if MAX_SEQUENCES is None:
+            pass
+        else:
+            ranked_v_sequences = df[v_templated_col].value_counts()
+            if MAX_SEQUENCES < ranked_v_sequences.shape[0]:
+
+                cutoff = ranked_v_sequences.iloc[MAX_SEQUENCES-1]
+
+                retain = df[v_templated_col].map(lambda x: ranked_v_sequences[x]>=cutoff)
+                df = df[retain]
+
+
+        if TRIM_PRIMERS:
             # v primers assumed in fwd orientation
             if verbose:
                 print(" Trimming primers...")
@@ -174,11 +192,11 @@ if __name__ == '__main__':
         for family in df.v_family.unique():
             family_truncation_map = construct_truncation_map(df[df.v_family == family][v_templated_col])
             v_seq_trunc_map.update(family_truncation_map)
-        if verbose: 
+        if verbose:
             print(" Done!")
 
         df[v_templated_col+"_no_trunc"] = df[v_templated_col].map(v_seq_trunc_map)
-        v_templated_col = v_templated_col + "_no_trunc"  
+        v_templated_col = v_templated_col + "_no_trunc"
 
         # cache dataframe
         cache_dest = '{}/{}_preprocessed.tsv.gz'.format(outdir, sample_name)
@@ -231,10 +249,10 @@ if __name__ == '__main__':
         else:
             v_germline_df = pd.DataFrame({v_templated_col:[],'match':[],'btop':[],'mutations':[]}) 
     if verbose:
-      print(" Called a total of {n} germline alleles. ".format(n = v_germline_df.shape[0]))
-      if not (args.annotate is None):
-        print(" {m} of these can be mapped to alleles in provided database.".format(
-              m = v_germline_df.match.notna().sum()))
+        print(" Called a total of {n} germline alleles. ".format(n = v_germline_df.shape[0]))
+        if not (args.annotate is None):
+            print(" {m} of these can be mapped to alleles in provided database.".format(
+                m = v_germline_df.match.notna().sum()))
 
     # print germline_calls
     germline_dest = "{}/{}_v_germlines.tsv".format(outdir, sample_name)
