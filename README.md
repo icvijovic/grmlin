@@ -22,6 +22,7 @@ Clone repository, install dependencies and add grmlin to your path.
 When using grmlin in a publication, please cite the following paper:
 
 "Reference-Free Germline Immunoglobulin Allele Discovery from B Cell Receptor Sequencing Data"
+
 Ivana Cvijovic, Elizabeth R Jerison, Stephen R Quake
 _bioRxiv_ 2023.11.25.568681; doi: https://doi.org/10.1101/2023.11.25.568681
 
